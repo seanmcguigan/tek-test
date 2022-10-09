@@ -1,0 +1,85 @@
+name: "Terraform Plan"
+
+# Trigger when a pull request is received
+on:
+  pull_request:
+
+jobs:
+  terraform-plan:
+    name: "Terraform Plan"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: 'terraform'
+    steps:
+      - name: "Setup - Checkout"
+        uses: actions/checkout@v2.1.0
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      # Downloads a specific version of Terraform CLI and adds it to PATH
+      # Marketplace: https://github.com/marketplace/actions/hashicorp-setup-terraform
+      - name: "Setup - Terraform CLI"
+        uses: hashicorp/setup-terraform@v1.3.2
+
+      # Format pulls credentials from the .aws/credentials file by default
+      - name: "Run - Terraform Format"
+        run: terraform fmt -check -diff -recursive
+
+      # Static analysis of Terraform templates to spot potential security issues
+      # Marketplace: https://github.com/marketplace/actions/terraform-security-scan
+      - name: "Run - Security Scan"
+        id: fmt
+        uses: triat/terraform-security-scan@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Init pulls credentials from the .aws/credentials file by default
+      - name: "Run - Terraform Init"
+        id: init
+        run: terraform init -input=false
+
+      - name: "Run - Terraform Validate"
+        id: validate
+        run: terraform validate -no-color
+
+      # The id value is used for reference in the comment step via "steps.plan.outputs.stdout"
+      # Note: Color is disabled to prevent messy characters from appearing in the pull request comment
+      - name: "Run - Terraform Plan"
+        id: plan
+        run: terraform plan -input=false -no-color
+        continue-on-error: true
+
+      # Submit a comment with the plan output to the pull request
+      - name: "Run - Terraform Comment"
+        uses: actions/github-script@0.9.0
+        env:
+          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+        with:
+          script: |
+            const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+
+            <details><summary>Show Plan</summary>
+
+            \`\`\`\n
+            ${process.env.PLAN}
+            \`\`\`
+
+            </details>
+
+            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
