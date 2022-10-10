@@ -35,7 +35,7 @@ jobs:
       
       # Marketplace: https://github.com/marketplace/actions/hashicorp-setup-terraform
       - name: "Setup - Terraform CLI"
-        uses: hashicorp/setup-terraform@v1.3.2
+        uses: hashicorp/setup-terraform@v2.0.0
 
       - name: "Run - Terraform Init"
         run: terraform init -input=false
