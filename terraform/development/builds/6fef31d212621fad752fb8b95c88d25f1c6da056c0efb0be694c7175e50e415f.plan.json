@@ -1,0 +1,1 @@
+{"filename": "builds/6fef31d212621fad752fb8b95c88d25f1c6da056c0efb0be694c7175e50e415f.zip", "runtime": "python3.8", "artifacts_dir": "builds", "build_plan": [["zip", "../../src/helloworld.py", null]]}
