@@ -11,7 +11,8 @@ module "lambda_function" {
 
   store_on_s3 = true
   s3_bucket   = "s3-packages-lambda-builds-helloworld"
-
+  create_lambda_function_url = true
+  
   tags = {
     Name = "helloworld"
     Env  = "dev"
