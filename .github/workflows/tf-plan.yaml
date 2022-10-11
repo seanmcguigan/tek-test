@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: 'terraform/development' # todo pass env in as var
+        working-directory: 'terraform/development'
     steps:
       - name: "Setup - Checkout"
         uses: actions/checkout@v2.1.0

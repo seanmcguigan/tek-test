@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: 'terraform'
+        working-directory: 'terraform/development'
     steps:
       - name: "Setup - Checkout"
         uses: actions/checkout@v2.1.0
